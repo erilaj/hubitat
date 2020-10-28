@@ -33,10 +33,10 @@ metadata {
         preferences {
             input name: "prefDisplayOutdoorTemp", type: "bool", title: "Enable display of outdoor temperature", defaultValue: true
             input name: "prefDisplayClock", type: "bool", title: "Enable display of clock", defaultValue: true
-            input name: "prefTimeFormatParam", type: "enum", title:"Time Format (Default: 24h)", options:["24h", "12h AM/PM"], defaultValue: "24H", multiple: false, required: false
+            input name: "prefTimeFormatParam", type: "enum", title: "Time Format (Default: 24h)", options:["24h", "12h AM/PM"], defaultValue: "24H", multiple: false, required: false
             input name: "prefBacklightMode", type: "enum", title: "Backlight Mode", multiple: false, options: [["1":"Always ON"],["2":"On Demand"], ["3":"Custom Command"]], defaultValue: "1", submitOnChange:true, required: true
-            input name: "prefAirFloorModeParam", type: "enum", title: "Control mode (Floor or Ambient temperature)", options: ["Ambient", "Floor"], , defaultValue: "Floor", multiple: false, required: false
-            input name: "prefFloorSensorTypeParam", type: "enum", title:"Probe type (Default: 10k)", options: ["10k", "12k"], defaultValue: "10k", multiple: false, required: false)
+            input name: "prefAirFloorModeParam", type: "enum", title: "Control mode (Floor or Ambient temperature)", options: ["Ambient", "Floor"], defaultValue: "Floor", multiple: false, required: false
+            input name: "prefFloorSensorTypeParam", type: "enum", title: "Probe type (Default: 10k)", options: ["10k", "12k"], defaultValue: "10k", multiple: false, required: false
             input name: "prefKeyLock", type: "bool", title: "Enable keylock", defaultValue: false
             input name: "prefLogging", type: "bool", title: "Enable logging", defaultValue: false
         }        
