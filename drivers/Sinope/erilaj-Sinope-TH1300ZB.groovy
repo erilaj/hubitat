@@ -253,7 +253,7 @@ def configure(){
         cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, -1) // set clock to -1 means hide the clock
     }
     //Configure Clock Format
-     if(TimeFormatParam == "12h AM/PM"){//12h AM/PM
+     if(prefTimeFormatParam == "12h AM/PM"){//12h AM/PM
        if(prefLogging) log.info "Set to 12h AM/PM"
         cmds += zigbee.writeAttribute(0xFF01, 0x0114, 0x30, 0x0001)
     }
@@ -262,7 +262,7 @@ def configure(){
         cmds += zigbee.writeAttribute(0xFF01, 0x0114, 0x30, 0x0000)
     }
 
-    if(AirFloorModeParam == "Ambient"){//Air mode
+    if(prefAirFloorModeParam == "Ambient"){//Air mode
         if(prefLogging) log.info "Set to Ambient mode"
          cmds += zigbee.writeAttribute(0xFF01, 0x0105, 0x30, 0x0001)
     }
@@ -271,7 +271,7 @@ def configure(){
         cmds += zigbee.writeAttribute(0xFF01, 0x0105, 0x30, 0x0002)
     }
 
-    if(FloorSensorTypeParam == "12k"){//sensor type = 12k
+    if(prefFloorSensorTypeParam == "12k"){//sensor type = 12k
         traceEvent(settings.logFilter,"Sensor type is 12k",settings.trace)
         cmds += zigbee.writeAttribute(0xFF01, 0x010B, 0x30, 0x0001)
     }
