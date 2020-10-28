@@ -20,6 +20,7 @@ metadata {
         capability "Thermostat"
         capability "Refresh"
         
+        attribute "outdoorTemp", "string"
         attribute "gfciStatus", "enum", ["OK", "error"]
         attribute "floorLimitStatus", "enum", ["OK", "floorLimitLowReached", "floorLimitMaxReached", "floorAirLimitLowReached", "floorAirLimitMaxReached"]
         // Receiving temperature notifications via RuleEngine
