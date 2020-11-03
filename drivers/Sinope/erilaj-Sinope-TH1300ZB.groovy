@@ -246,7 +246,7 @@ def configure(){
     if (state.displayClock) { 
         //To refresh the time        
         def d = new Date()
-        if(prefLogging) log.info "Set Clock : $d.toString()"
+        if(prefLogging) log.info "Set Clock : ${d}"
         int curHourSeconds = (d.hours * 60 * 60) + (d.minutes * 60) + d.seconds
         cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, curHourSeconds, [mfgCode: "0x119C"])
     } else {
@@ -254,7 +254,7 @@ def configure(){
         cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, -1) // set clock to -1 means hide the clock
     }
     //Configure Clock Format
-     if(prefTimeFormatParam == "12h AM/PM"){//12h AM/PM
+    if(prefTimeFormatParam == "12h AM/PM"){//12h AM/PM
        if(prefLogging) log.info "Set to 12h AM/PM"
         cmds += zigbee.writeAttribute(0xFF01, 0x0114, 0x30, 0x0001)
     }
