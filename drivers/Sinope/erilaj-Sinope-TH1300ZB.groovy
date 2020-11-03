@@ -273,11 +273,11 @@ def configure(){
     }
 
     if(prefFloorSensorTypeParam == "12k"){//sensor type = 12k
-        traceEvent(settings.logFilter,"Sensor type is 12k",settings.trace)
+         if(prefLogging) log.info "Sensor type is 12k"
         cmds += zigbee.writeAttribute(0xFF01, 0x010B, 0x30, 0x0001)
     }
     else{//sensor type = 10k
-        traceEvent(settings.logFilter,"Sensor type is 10k",settings.trace)
+         if(prefLogging) log.info "Sensor type is 10k"
         cmds += zigbee.writeAttribute(0xFF01, 0x010B, 0x30, 0x0000)
     }
     // Submit zigbee commands
