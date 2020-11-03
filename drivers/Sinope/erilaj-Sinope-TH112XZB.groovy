@@ -221,7 +221,7 @@ def configure(){
     if (state.displayClock) { 
         //To refresh the time        
         def d = new Date()
-        if(prefLogging) log.info "Set Clock : $d.toString()"
+        if(prefLogging) log.info "Set Clock : ${d}"
         int curHourSeconds = (d.hours * 60 * 60) + (d.minutes * 60) + d.seconds
         cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, curHourSeconds, [mfgCode: "0x119C"])
     } else {
