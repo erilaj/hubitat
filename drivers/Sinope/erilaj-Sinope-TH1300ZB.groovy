@@ -242,15 +242,19 @@ def configure(){
     }else if(prefBacklightMode == "2"){
         cmds += zigbee.writeAttribute(0x0201, 0x0402, 0x30, 0x0000) // set display brightness to ambient lighting
     }
+    state.displayClock = prefDisplayClock
     // Configure Clock Display
-    if (state.displayClock) { 
-        //To refresh the time        
+    if (prefDisplayClock) { 
+        //To refresh the time
         def d = new Date()
-        if(prefLogging) log.info "Set Clock : ${d}"
+	    if(prefLogging){ 
+		    log.info "Set Clock : ${d}"
+		    log.info "The clock is visible. DisplayClock = ${prefDisplayClock}"
+	    }
         int curHourSeconds = (d.hours * 60 * 60) + (d.minutes * 60) + d.seconds
         cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, curHourSeconds, [mfgCode: "0x119C"])
     } else {
-        if(prefLogging) log.info "The clock was hide. DisplayClock = $state.displayClock"
+	    if(prefLogging) log.info "The clock was hide. DisplayClock = ${prefDisplayClock}"
         cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, -1) // set clock to -1 means hide the clock
     }
     //Configure Clock Format
@@ -402,26 +406,28 @@ def eco() {
 
 def deviceNotification(text) {
    
-        double outdoorTemp = text.toDouble()
-        def cmds = []
+    double outdoorTemp = text.toDouble()
+    def cmds = []
 
-        if (prefDisplayOutdoorTemp) {
-            if(prefLogging) log.info "deviceNotification() : Received outdoor weather : ${text} : ${outdoorTemp}"
-    
+    if (prefDisplayOutdoorTemp) {
+        
+        if(prefLogging){
+             log.info "deviceNotification() : Received outdoor weather : ${text} : ${outdoorTemp}"
+        }
+            sendEvent( name: "outdoorTemp", value: outdoorTemp, unit: state?.scale)
             //the value sent to the thermostat must be in C
             if (getTemperatureScale() == 'F') {    
-                outdoorTemp = fahrenheitToCelsius(outdoorTemp).toDouble()
-        }        
-        sendEvent( name: "outdoorTemp", value: outdoorTemp, unit: state?.scale)
-        int outdoorTempDevice = outdoorTemp*100
-        cmds += zigbee.writeAttribute(0xFF01, 0x0011, 0x21, 10800)   //set the outdoor temperature timeout to 3 hours
-        cmds += zigbee.writeAttribute(0xFF01, 0x0010, 0x29, outdoorTempDevice, [mfgCode: "0x119C"]) //set the outdoor temperature as integer
+                outdoorTemp = fahrenheitToCelsius(outdoorTemp).toDouble().round()
+            }        
+            int outdoorTempDevice = outdoorTemp*100
+            cmds += zigbee.writeAttribute(0xFF01, 0x0011, 0x21, 10800)   //set the outdoor temperature timeout to 3 hours
+            cmds += zigbee.writeAttribute(0xFF01, 0x0010, 0x29, outdoorTempDevice, [mfgCode: "0x119C"]) //set the outdoor temperature as integer
     
-        // Submit zigbee commands    
-        sendZigbeeCommands(cmds)
-        } else {
+            // Submit zigbee commands    
+            sendZigbeeCommands(cmds)
+    } else {
             if(prefLogging) log.info "deviceNotification() : Not setting any outdoor weather, since feature is disabled."  
-        }
+    }
 }
 def displayOn(){
     if(prefLogging) log.info "displayOn() command send"
