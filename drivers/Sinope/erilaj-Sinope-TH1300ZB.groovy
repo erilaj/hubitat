@@ -33,7 +33,7 @@ metadata {
         preferences {
             input name: "prefDisplayOutdoorTemp", type: "bool", title: "Enable display of outdoor temperature", defaultValue: true
             input name: "prefHideClock", type: "bool", title: "Hide the clock", defaultValue: false
-            input name: "prefTimeFormatParam", type: "enum", title: "Time Format (Default: 24h)", options:["24h", "12h AM/PM"], defaultValue: "24H", multiple: false, required: false
+            input name: "prefTimeFormatParam", type: "enum", title: "Time Format", options:[["1":"24h"], ["2":"12h AM/PM"]], defaultValue: "1", multiple: false, required: true
             input name: "prefBacklightMode", type: "enum", title: "Backlight Mode", multiple: false, options: [["1":"Always ON"],["2":"On Demand"], ["3":"Custom Command"]], defaultValue: "1", submitOnChange:true, required: true
             input name: "prefAirFloorModeParam", type: "enum", title: "Control mode (Floor or Ambient temperature)", options: ["Ambient", "Floor"], defaultValue: "Floor", multiple: false, required: false
             input name: "prefFloorSensorTypeParam", type: "enum", title: "Probe type (Default: 10k)", options: ["10k", "12k"], defaultValue: "10k", multiple: false, required: false
@@ -260,7 +260,7 @@ def configure(){
         cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, curHourSeconds, [mfgCode: "0x119C"]) 
     }
     //Configure Clock Format
-    if(prefTimeFormatParam == "12h AM/PM"){//12h AM/PM
+    if(prefTimeFormatParam == "2"){//12h AM/PM
        if(prefLogging) log.info "Set to 12h AM/PM"
         cmds += zigbee.writeAttribute(0xFF01, 0x0114, 0x30, 0x0001)
     }
