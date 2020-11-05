@@ -32,7 +32,7 @@ metadata {
         
         preferences {
             input name: "prefDisplayOutdoorTemp", type: "bool", title: "Enable display of outdoor temperature", defaultValue: true
-            input name: "prefDisplayClock", type: "bool", title: "Enable display of clock", defaultValue: true
+            input name: "prefHideClock", type: "bool", title: "Hide the clock", defaultValue: false
             input name: "prefTimeFormatParam", type: "enum", title: "Time Format (Default: 24h)", options:["24h", "12h AM/PM"], defaultValue: "24H", multiple: false, required: false
             input name: "prefBacklightMode", type: "enum", title: "Backlight Mode", multiple: false, options: [["1":"Always ON"],["2":"On Demand"], ["3":"Custom Command"]], defaultValue: "1", submitOnChange:true, required: true
             input name: "prefAirFloorModeParam", type: "enum", title: "Control mode (Floor or Ambient temperature)", options: ["Ambient", "Floor"], defaultValue: "Floor", multiple: false, required: false
@@ -52,7 +52,7 @@ metadata {
 
 def installed() {
     if(prefLogging) log.info "installed() : scheduling configure() every 3 hours"
-    state.displayClock = prefDisplayClock
+    //state.hideClock = prefHideClock
     runEvery3Hours(configure)
 }
 
@@ -63,7 +63,7 @@ def updated() {
     } catch (e) {
         if(prefLogging) log.error "updated(): Error unschedule() - ${errMsg}"
     }
-    state.displayClock = prefDisplayClock
+    //state.hideClock = prefHideClock
     runIn(1,configure)
     runEvery3Hours(configure)    
 }
@@ -242,20 +242,21 @@ def configure(){
     }else if(prefBacklightMode == "2"){
         cmds += zigbee.writeAttribute(0x0201, 0x0402, 0x30, 0x0000) // set display brightness to ambient lighting
     }
-    state.displayClock = prefDisplayClock
+    //state.hideClock = prefHideClock
     // Configure Clock Display
-    if (prefDisplayClock) { 
-        //To refresh the time
+    if (prefHideClock) { 
+	     if(prefLogging) log.info "The clock is hidden. HideClock = ${prefHideClock}"
+        cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, -1) // set clock to -1 means hide the clock
+       
+    } else {
+	   //To refresh the time
         def d = new Date()
 	    if(prefLogging){ 
 		    log.info "Set Clock : ${d}"
-		    log.info "The clock is visible. DisplayClock = ${prefDisplayClock}"
+		    log.info "The clock is visible. HideClock = ${prefHideClock}"
 	    }
         int curHourSeconds = (d.hours * 60 * 60) + (d.minutes * 60) + d.seconds
-        cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, curHourSeconds, [mfgCode: "0x119C"])
-    } else {
-	    if(prefLogging) log.info "The clock was hide. DisplayClock = ${prefDisplayClock}"
-        cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, -1) // set clock to -1 means hide the clock
+        cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, curHourSeconds, [mfgCode: "0x119C"]) 
     }
     //Configure Clock Format
     if(prefTimeFormatParam == "12h AM/PM"){//12h AM/PM
