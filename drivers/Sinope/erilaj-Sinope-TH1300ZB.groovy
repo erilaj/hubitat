@@ -52,7 +52,7 @@ metadata {
 
 def installed() {
     if(prefLogging) log.info "installed() : scheduling configure() every 3 hours"
-    //state.hideClock = prefHideClock
+    state.hideClock = prefHideClock
     runEvery3Hours(configure)
 }
 
@@ -63,7 +63,9 @@ def updated() {
     } catch (e) {
         if(prefLogging) log.error "updated(): Error unschedule() - ${errMsg}"
     }
-    //state.hideClock = prefHideClock
+    if(state.displayClock != null)
+        state.remove("displayClock")
+    state.hideClock = prefHideClock
     runIn(1,configure)
     runEvery3Hours(configure)    
 }
@@ -182,8 +184,7 @@ private createCustomMap(descMap){
 def refresh() {
     if(prefLogging) log.info "refresh()"
     def cmds = []    
-    cmds += zigbee.readAttribute(0x0204, 0x0000)	// Rd thermostat display mode
-       
+    cmds += zigbee.readAttribute(0x0204, 0x0000)	// Rd thermostat display mode       
     cmds += zigbee.readAttribute(0x0201, 0x0000)	// Rd thermostat Local temperature
     cmds += zigbee.readAttribute(0x0201, 0x0012)	// Rd thermostat Occupied heating setpoint
     cmds += zigbee.readAttribute(0x0201, 0x0008)	// Rd thermostat PI heating demand
