@@ -63,11 +63,14 @@ def updated() {
     } catch (e) {
         if(prefLogging) log.error "updated(): Error unschedule() - ${errMsg}"
     }
-    if(state.displayClock != null)
-        state.remove("displayClock")
     state.hideClock = prefHideClock
     runIn(1,configure)
-    runEvery3Hours(configure)    
+    runEvery3Hours(configure)  
+    try{
+        state.remove("displayClock")
+    }catch(errMsg){
+    	if(prefLogging) log.error "${errMsg}"
+    }
 }
 
 def uninstalled() {
