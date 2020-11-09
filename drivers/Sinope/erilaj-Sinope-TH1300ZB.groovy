@@ -278,11 +278,12 @@ def configure(){
     
     //To refresh the time
     def d = new Date()
-    if(prefLogging){ 
-	log.info "Set Clock : ${d}"
-	log.info "The clock is visible. HideClock = ${prefHideClock}"
-     }
+    
      int curHourSeconds = (d.hours * 60 * 60) + (d.minutes * 60) + d.seconds
+	if(prefLogging){ 
+	log.info "Set Clock : ${d}"
+	log.info "Clock total seconds = ${curHourSeconds}"
+     }
      cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, curHourSeconds, [mfgCode: "0x119C"]) 
     // Submit zigbee commands
     sendZigbeeCommands(cmds)    
