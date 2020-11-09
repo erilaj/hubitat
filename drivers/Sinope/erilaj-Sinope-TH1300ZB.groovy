@@ -248,24 +248,6 @@ def configure(){
         cmds += zigbee.writeAttribute(0x0201, 0x0402, 0x30, 0x0000) // set display brightness to ambient lighting
     }
 
-    //state.hideClock = prefHideClock
-    // Configure Clock Display
-    
-    // if (prefHideClock) { 
-	//      if(prefLogging) log.info "The clock is hidden. HideClock = ${prefHideClock}"
-    //     cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, -1) // set clock to -1 means hide the clock
-       
-    // } else {
-	//    //To refresh the time
-    //     def d = new Date()
-	//     if(prefLogging){ 
-	// 	    log.info "Set Clock : ${d}"
-	// 	    log.info "The clock is visible. HideClock = ${prefHideClock}"
-	//     }
-    //     int curHourSeconds = (d.hours * 60 * 60) + (d.minutes * 60) + d.seconds
-    //     cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, curHourSeconds, [mfgCode: "0x119C"]) 
-    // }
-
     //Configure Clock Format
     if(prefTimeFormatParam == "2"){//12h AM/PM
        if(prefLogging) log.info "Set to 12h AM/PM"
@@ -295,11 +277,13 @@ def configure(){
     }
     
     //To refresh the time
-    long secFrom2000 = (((now().toBigInteger() + mytimezone.rawOffset + dstSavings ) / 1000) - (10957 * 24 * 3600)).toLong() 
-    //number of second from 2000-01-01 00:00:00h
-    long secIndian = zigbee.convertHexToInt(swapEndianHex(hex(secFrom2000).toString())) //switch endianess
-    cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, secIndian, [mfgCode: 0x119C])
-
+    def d = new Date()
+    if(prefLogging){ 
+	log.info "Set Clock : ${d}"
+	log.info "The clock is visible. HideClock = ${prefHideClock}"
+     }
+     int curHourSeconds = (d.hours * 60 * 60) + (d.minutes * 60) + d.seconds
+     cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, curHourSeconds, [mfgCode: "0x119C"]) 
     // Submit zigbee commands
     sendZigbeeCommands(cmds)    
     // Submit refresh
