@@ -200,6 +200,7 @@ def refresh() {
   
     // Submit zigbee commands
     sendZigbeeCommands(cmds)
+    refresh_Time()
 }   
 
 def configure(){    
@@ -241,7 +242,7 @@ def configure(){
         cmds += zigbee.writeAttribute(0xFF01, 0x0011, 0x21, 0)  //set the outdoor temperature timeout immediately
     }     
         
-    // Configure Screen Baclight
+    // Configure Screen Backlight
     if(prefBacklightMode == "1"){
          cmds += zigbee.writeAttribute(0x0201, 0x0402, 0x30, 0x0001) // set display brigtness to explicitly on
     }else if(prefBacklightMode == "2"){
@@ -275,16 +276,7 @@ def configure(){
          if(prefLogging) log.info "Sensor type is 10k"
         cmds += zigbee.writeAttribute(0xFF01, 0x010B, 0x30, 0x0000)
     }
-    
-    //To refresh the time
-    def d = new Date()
-    
-     int curHourSeconds = (d.hours * 60 * 60) + (d.minutes * 60) + d.seconds
-	if(prefLogging){ 
-	log.info "Set Clock : ${d}"
-	log.info "Clock total seconds = ${curHourSeconds}"
-     }
-     cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, curHourSeconds, [mfgCode: "0x119C"]) 
+
     // Submit zigbee commands
     sendZigbeeCommands(cmds)    
     // Submit refresh
@@ -445,7 +437,17 @@ def displayOff(){
      sendZigbeeCommands(cmds)
 }
 
-
+void refresh_Time() {
+    def cmds=[]    
+      // Time
+      def thermostatDate = new Date();
+      def thermostatTimeSec = thermostatDate.getTime() / 1000;
+      def thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
+      def currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
+      cmds += zigbee.writeAttribute(0xFF01, 0x0020, DataType.UINT32, zigbee.convertHexToInt(hex(currentTimeToDisplay)), [mfgCode: "0x119C"])
+    
+	sendZigbeeCommands(cmds)
+}
 //-- Private functions -----------------------------------------------------------------------------------
 private void sendZigbeeCommands(cmds) {
     cmds.removeAll { it.startsWith("delay") }
@@ -488,4 +490,30 @@ private getHeatingDemand(value) {
         def demand = Integer.parseInt(value, 16)
         return demand.toString()
     }
+}
+
+private hex(value) {
+
+	String hex=new BigInteger(Math.round(value).toString()).toString(16)
+	return hex
+}
+
+private String swapEndianHex(String hex) {
+	 reverseArray(hex.decodeHex()).encodeHex()
+}
+
+private byte[] reverseArray(byte[] array) {
+	int i = 0;
+	int j = array.length - 1;
+	byte tmp;
+
+	while (j > i) {
+		tmp = array[j];
+		array[j] = array[i];
+		array[i] = tmp;
+		j--;
+		i++;
+	}
+
+	return array
 }
