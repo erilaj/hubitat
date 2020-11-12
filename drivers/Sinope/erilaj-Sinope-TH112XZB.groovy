@@ -26,11 +26,11 @@ metadata {
         command "eco"
         command "displayOn"
         command "displayOff"
+        command "setClockTime"
         
         preferences {
             input name: "prefDisplayOutdoorTemp", type: "bool", title: "Enable Display of Outdoor Temperature", defaultValue: true
             input name: "prefTimeFormatParam", type: "enum", title: "Time Format", options:[["1":"24h"], ["2":"12h AM/PM"]], defaultValue: "1", multiple: false, required: true
-            input name: "prefHideClock", type: "bool", title: "Hide The Clock", defaultValue: false
             input name: "prefBacklightMode", type: "enum", title: "Backlight Mode", multiple: false, options: [["1":"Always ON"],["2":"On Demand"], ["3":"Custom Command"]], defaultValue: "1", submitOnChange:true, required: true
             input name: "prefKeyLock", type: "bool", title: "Enable Keylock", defaultValue: false
             input name: "prefLogging", type: "bool", title: "Enable Logging", defaultValue: false
@@ -45,7 +45,7 @@ metadata {
 
 def installed() {
     if(prefLogging) log.info "installed() : scheduling configure() every 3 hours"
-    state.hideClock = prefHideClock
+    //state.hideClock = prefHideClock
     runEvery3Hours(configure)
 }
 
@@ -58,11 +58,12 @@ def updated() {
     }
 
     
-    state.hideClock = prefHideClock
+    //state.hideClock = prefHideClock
     runIn(1,configure)
     runEvery3Hours(configure)
     try{
         state.remove("displayClock")
+        state.remove("hideClock")
     }catch(errMsg){
          if(prefLogging) log.error "${errMsg}"
     }
@@ -174,6 +175,8 @@ def refresh() {
     
     // Submit zigbee commands
     sendZigbeeCommands(cmds)
+    
+    setClockTime()
 }   
 
 def configure(){    
@@ -227,18 +230,7 @@ def configure(){
     }else if(prefBacklightMode == "2"){
         cmds += zigbee.writeAttribute(0x0201, 0x0402, 0x30, 0x0000) // set display brightness to ambient lighting
     }
-    // Configure Clock Display
-    if (prefHideClock) { 
-        if(prefLogging) log.info "The clock was hidden. HideClock = ${prefHideClock}"
-        cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, -1) // set clock to -1 means hide the clock     
-    } else {
-        //To refresh the time        
-        def d = new Date()
-        if(prefLogging) log.info "Set Clock : ${d}"
-        int curHourSeconds = (d.hours * 60 * 60) + (d.minutes * 60) + d.seconds
-        cmds += zigbee.writeAttribute(0xFF01, 0x0020, 0x23, curHourSeconds, [mfgCode: "0x119C"])
-    }
-    
+       
      //Configure Clock Format
     if(prefTimeFormatParam == "2"){//12h AM/PM
        if(prefLogging) log.info "Set to 12h AM/PM"
@@ -248,6 +240,7 @@ def configure(){
         if(prefLogging) log.info "Set to 24h"
         cmds += zigbee.writeAttribute(0xFF01, 0x0114, 0x30, 0x0000)
     }
+
     // Submit zigbee commands
     sendZigbeeCommands(cmds)    
     // Submit refresh
@@ -411,6 +404,15 @@ def displayOff(){
      sendZigbeeCommands(cmds)
 }
 
+def setClockTime(){   
+    if(prefLogging) log.info "setClockTime() command send"
+      def thermostatDate = new Date();
+      def thermostatTimeSec = thermostatDate.getTime() / 1000;
+      def thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
+      def currentTimeToDisplay = Math.round(thermostatTimeSec - thermostatTimezoneOffsetSec - 946684800);
+      cmds += zigbee.writeAttribute(0xFF01, 0x0020, DataType.UINT32, zigbee.convertHexToInt(hex(currentTimeToDisplay)), [mfgCode: "0x119C"])
+      sendZigbeeCommands(cmds)
+}
 //-- Private functions -----------------------------------------------------------------------------------
 private void sendZigbeeCommands(cmds) {
     cmds.removeAll { it.startsWith("delay") }
@@ -462,4 +464,28 @@ private getHeatingDemand(value) {
         def demand = Integer.parseInt(value, 16)
         return demand.toString()
     }
+}
+private hex(value) {
+
+	String hex=new BigInteger(Math.round(value).toString()).toString(16)
+	return hex    
+}
+private String swapEndianHex(String hex) {
+	reverseArray(hex.decodeHex()).encodeHex()
+}
+
+private byte[] reverseArray(byte[] array) {
+	int i = 0;
+	int j = array.length - 1;
+	byte tmp;
+
+	while (j > i) {
+		tmp = array[j];
+		array[j] = array[i];
+		array[i] = tmp;
+		j--;
+		i++;
+	}
+
+	return array
 }
