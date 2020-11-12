@@ -29,12 +29,12 @@ metadata {
         command "eco"
         command "displayOn"
         command "displayOff"
+        command "setClockTime"
         
         preferences {
             input name: "prefDisplayOutdoorTemp", type: "bool", title: "Enable display of outdoor temperature", defaultValue: true
             input name: "prefTimeFormatParam", type: "enum", title: "Time Format", options:[["1":"24h"], ["2":"12h AM/PM"]], defaultValue: "1", multiple: false, required: true
-            //input name: "prefHideClock", type: "bool", title: "Hide the clock", defaultValue: false
-	        input name: "prefBacklightMode", type: "enum", title: "Backlight Mode", multiple: false, options: [["1":"Always ON"],["2":"On Demand"], ["3":"Custom Command"]], defaultValue: "1", submitOnChange:true, required: true
+	    input name: "prefBacklightMode", type: "enum", title: "Backlight Mode", multiple: false, options: [["1":"Always ON"],["2":"On Demand"], ["3":"Custom Command"]], defaultValue: "1", submitOnChange:true, required: true
             input name: "prefAirFloorModeParam", type: "enum", title: "Control mode (Floor or Ambient temperature)", options: ["Ambient", "Floor"], defaultValue: "Floor", multiple: false, required: false
             input name: "prefFloorSensorTypeParam", type: "enum", title: "Probe type (Default: 10k)", options: ["10k", "12k"], defaultValue: "10k", multiple: false, required: false
             input name: "prefKeyLock", type: "bool", title: "Enable keylock", defaultValue: false
@@ -52,7 +52,6 @@ metadata {
 
 def installed() {
     if(prefLogging) log.info "installed() : scheduling configure() every 3 hours"
-    //state.hideClock = prefHideClock
     runEvery3Hours(configure)
 }
 
@@ -63,7 +62,6 @@ def updated() {
     } catch (e) {
         if(prefLogging) log.error "updated(): Error unschedule() - ${errMsg}"
     }
-    //state.hideClock = prefHideClock
     runIn(1,configure)
     runEvery3Hours(configure)  
     try{
@@ -200,7 +198,7 @@ def refresh() {
   
     // Submit zigbee commands
     sendZigbeeCommands(cmds)
-    refresh_Time()
+    setClockTime()
 }   
 
 def configure(){    
@@ -242,7 +240,7 @@ def configure(){
         cmds += zigbee.writeAttribute(0xFF01, 0x0011, 0x21, 0)  //set the outdoor temperature timeout immediately
     }     
         
-    // Configure Screen Backlight
+    // Configure Screen Baclight
     if(prefBacklightMode == "1"){
          cmds += zigbee.writeAttribute(0x0201, 0x0402, 0x30, 0x0001) // set display brigtness to explicitly on
     }else if(prefBacklightMode == "2"){
@@ -437,8 +435,9 @@ def displayOff(){
      sendZigbeeCommands(cmds)
 }
 
-void refresh_Time() {
-    def cmds=[]    
+def setClockTime() {
+     if(prefLogging) log.info "setClockTime() command send"
+      def cmds=[]    
       // Time
       def thermostatDate = new Date();
       def thermostatTimeSec = thermostatDate.getTime() / 1000;
