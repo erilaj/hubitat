@@ -406,6 +406,7 @@ def displayOff(){
 
 def setClockTime(){   
     if(prefLogging) log.info "setClockTime() command send"
+     def cmds =[]
       def thermostatDate = new Date();
       def thermostatTimeSec = thermostatDate.getTime() / 1000;
       def thermostatTimezoneOffsetSec = thermostatDate.getTimezoneOffset() * 60;
